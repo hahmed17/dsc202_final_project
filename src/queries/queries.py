@@ -102,7 +102,8 @@ def run_transport_query(neo4j_session, pg_cursor):
     result_df = result_df.reset_index().rename(columns={'holc_grade': 'Redlining grade'})
     print_pretty_df(result_df.iloc[:, 0:4])
     print_pretty_df(result_df.iloc[:, [0,4,5,6,7]])
-    
+
+def
 
 if __name__ == '__main__':
     pg_conn, pg_cursor = get_postgres_cursor()
@@ -118,5 +119,9 @@ if __name__ == '__main__':
     print("***********************************************")
     run_transport_query(neo4j_session, pg_cursor)
 
+    print("***********************************************")
+    print("c. Running the query about public transport")
+    print("***********************************************")
+    run_transport_query(neo4j_session, pg_cursor)
     
     stop_postgres(pg_conn, pg_cursor)
