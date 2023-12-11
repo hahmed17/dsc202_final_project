@@ -1,6 +1,7 @@
 import psycopg2
 import os
 from prettytable import PrettyTable
+from tabulate import tabulate
 
 def get_postgres_cursor():
     # MUST CREATE CONNECTION to Postgres before any calls are made
@@ -25,7 +26,7 @@ def execute_postgres(pg_cursor, query):
 
 def print_pretty_table(pg_cursor):
     rows = pg_cursor.fetchall()
-
+   
     columns = [desc[0] for desc in pg_cursor.description]
     # Create a PrettyTable object and add columns
     table = PrettyTable(columns)
@@ -34,4 +35,20 @@ def print_pretty_table(pg_cursor):
     for row in rows:
         table.add_row(row)
 
+    print(table)
+
+
+def print_pretty_df(df):
+   # Create a PrettyTable object
+    table = PrettyTable()
+
+    # Add column names
+    table.field_names = df.columns
+    # table.float_format = ".4f"
+
+    # Add each row of data
+    for row in df.iterrows():
+        table.add_row(row[1].tolist())
+
+    # Print the table
     print(table)

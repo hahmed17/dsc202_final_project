@@ -1,7 +1,7 @@
 from neo4j import GraphDatabase
 import shutil
 import os
-
+from src.utils.neo4j import *
 
 # get the import directory
 def get_import_dir(session):
@@ -31,8 +31,8 @@ for file in os.listdir(data_dir):
 # import the data into a neo4j database
 add_metra_stations = """
 LOAD CSV WITH HEADERS FROM 'file:///MetraStations.csv' AS row
-WITH row.station AS station, toFloat(row.x) AS long, toFloat(row.y) AS lat
-MERGE (p:MetraStation{name: station, long: long, lat:lat});
+WITH row.station AS station
+MERGE (p:MetraStation{name: station});
 """
 
 add_metra_routes = """
@@ -43,8 +43,8 @@ MERGE (src)-[:CONNECTS_TO]->(dest);
 
 add_train_stations = """
 LOAD CSV WITH HEADERS FROM 'file:///TrainStations.csv' AS row
-WITH row.station AS station, toFloat(row.x) AS long, toFloat(row.y) AS lat
-MERGE (p:TrainStation{name: station, long: long, lat:lat});
+WITH row.station AS station
+MERGE (p:TrainStation{name: station});
 """
 
 add_train_routes = """
@@ -52,8 +52,18 @@ LOAD CSV WITH HEADERS FROM 'file:///TrainRoutes.csv' AS row
 MATCH (src:TrainStation {name: row.src_station}), (dest:TrainStation {name: row.dest_stations})
 MERGE (src)-[:CONNECTS_TO]->(dest);
 """
+setup_gds_train = '''
+CALL gds.graph.project('train_graph', 'TrainStation', 'CONNECTS_TO')
+'''
 
-session.run(add_metra_stations)
-session.run(add_metra_routes)
-session.run(add_train_stations)
-session.run(add_train_routes)
+setup_gds_metra = '''
+CALL gds.graph.project('metra_graph', 'MetraStation', 'CONNECTS_TO')
+'''
+
+print_neo4j_query(session, add_metra_stations)
+print_neo4j_query(session, add_metra_routes)
+print_neo4j_query(session, add_train_stations)
+print_neo4j_query(session, add_train_routes)
+print_neo4j_query(session, setup_gds_metra)
+print_neo4j_query(session, setup_gds_train)
+
