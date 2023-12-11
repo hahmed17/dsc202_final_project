@@ -105,29 +105,19 @@ def run_transport_query(neo4j_session, pg_cursor):
     print_pretty_df(result_df.iloc[:, [0,4,5,6,7]])
 
 def run_crime_query(pg_cursor):
-    redlining_df = gpd.read_file('data/raw/ILChicago1940')
-    # Read CSV into a Pandas DataFrame
-    df = pd.read_csv('data/Crimes.csv', parse_dates=['Date'], encoding='utf-8-sig')
-
-    # Convert the 'Location' column to a Point geometry
-    geometry = df['Location'].apply(lambda loc: Point(eval(loc)))
-    gdf = gpd.GeoDataFrame(df, geometry=geometry)
-
-    print(gdf)
-    # crime_query = '''
-    #     WITH t AS
-    #     (
-    #         SELECT holc_grade, COUNT(*) as count, holc_id, region_area 
-    #         FROM crimedata c, redlinescores r
-    #         WHERE r.NID = c.CommunityArea
-    #         GROUP BY 
-    #     )
-    #     GROUP by holc_grade;
-    #     '''
+    crime_query = '''
+        WITH t AS
+        (
+            SELECT c.holc_grade
+            FROM redlinedcrimedata c, redlinescores r
+            WHERE c.holc_id = r.holc_id
+        )
+        SELECT holc_grade FROM t;
+        '''
     
-    # #PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault/Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'
-    # execute_postgres(pg_cursor, crime_query)
-    # print_pretty_table(pg_cursor)
+    #PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault/Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'
+    execute_postgres(pg_cursor, crime_query)
+    print_pretty_table(pg_cursor)
 
 if __name__ == '__main__':
     pg_conn, pg_cursor = get_postgres_cursor()

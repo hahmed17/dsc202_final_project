@@ -41,5 +41,4 @@ school_df = gpd.GeoDataFrame(school_df, geometry=[Point(float(x.split()[1][1:]),
 school_df = school_df.set_crs('EPSG:4326')
 school_df = redlining_df.sjoin(school_df.to_crs('EPSG:3857'), how='right', predicate='intersects')
 school_df = school_df[['School_ID', 'Short_Name', 'holc_id', 'holc_grade', 'Grade_Cat']].reset_index(drop=True)
-print(school_df)
 school_df.to_csv('data/Schools.csv', index=False)

@@ -7,11 +7,11 @@ pg_conn, pg_cursor = get_postgres_cursor()
 
 # export dataframes to csv file and import to Postgres 
 
-schema_files = ['crime', 'income', 'redlining']
+schema_files = os.listdir('data/schemas')
 
 all_tables = []
 for f in schema_files:
-    all_tables.append(get_file_contents(os.path.join('data/schemas', f'{f}.sql')))
+    all_tables.append(get_file_contents(os.path.join('data/schemas', f)))
 
 for table in all_tables:
     pg_cursor.execute(table)
@@ -20,7 +20,8 @@ for table in all_tables:
 csv_tables = {
     'communitystats': 'Per_Capita_Income.csv',
     'redlinescores': 'redlining_per_neighborhood.csv',
-    'redlinedcrimedata': 'Crimes.csv'
+    'redlinedcrimedata': 'Crimes.csv',
+    'schoolsdata': 'Schools.csv'
 }
 
 for k in csv_tables.keys():
