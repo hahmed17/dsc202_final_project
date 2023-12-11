@@ -9,6 +9,7 @@ import numpy as np
 from src.utils.postgres import *
 from src.utils.neo4j import *
 from src.utils.vector_utils import *
+from shapely.geometry import Point
 
 def run_income_query(pg_cursor):
     income_query = '''
@@ -103,7 +104,30 @@ def run_transport_query(neo4j_session, pg_cursor):
     print_pretty_df(result_df.iloc[:, 0:4])
     print_pretty_df(result_df.iloc[:, [0,4,5,6,7]])
 
-def
+def run_crime_query(pg_cursor):
+    redlining_df = gpd.read_file('data/raw/ILChicago1940')
+    # Read CSV into a Pandas DataFrame
+    df = pd.read_csv('data/Crimes.csv', parse_dates=['Date'], encoding='utf-8-sig')
+
+    # Convert the 'Location' column to a Point geometry
+    geometry = df['Location'].apply(lambda loc: Point(eval(loc)))
+    gdf = gpd.GeoDataFrame(df, geometry=geometry)
+
+    print(gdf)
+    # crime_query = '''
+    #     WITH t AS
+    #     (
+    #         SELECT holc_grade, COUNT(*) as count, holc_id, region_area 
+    #         FROM crimedata c, redlinescores r
+    #         WHERE r.NID = c.CommunityArea
+    #         GROUP BY 
+    #     )
+    #     GROUP by holc_grade;
+    #     '''
+    
+    # #PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault/Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'
+    # execute_postgres(pg_cursor, crime_query)
+    # print_pretty_table(pg_cursor)
 
 if __name__ == '__main__':
     pg_conn, pg_cursor = get_postgres_cursor()
@@ -120,8 +144,8 @@ if __name__ == '__main__':
     run_transport_query(neo4j_session, pg_cursor)
 
     print("***********************************************")
-    print("c. Running the query about public transport")
+    print("c. Running the query about crime data")
     print("***********************************************")
-    run_transport_query(neo4j_session, pg_cursor)
+    run_crime_query(pg_cursor)
     
     stop_postgres(pg_conn, pg_cursor)

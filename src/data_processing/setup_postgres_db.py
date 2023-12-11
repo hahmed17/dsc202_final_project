@@ -20,7 +20,7 @@ for table in all_tables:
 csv_tables = {
     'communitystats': 'Per_Capita_Income.csv',
     'redlinescores': 'redlining_per_neighborhood.csv',
-    'crimedata': 'Crimes.csv'
+    'redlinedcrimedata': 'Crimes.csv'
 }
 
 for k in csv_tables.keys():
