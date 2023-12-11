@@ -8,6 +8,7 @@ from geopy import distance
 import numpy as np
 from src.utils.postgres import *
 from src.utils.neo4j import *
+from src.utils.vector_utils import *
 
 def run_income_query(pg_cursor):
     income_query = '''
@@ -32,7 +33,29 @@ def run_income_query(pg_cursor):
     print_pretty_table(pg_cursor)
 
 def run_transport_query(neo4j_session, pg_cursor):
-    
+    # open the redlining database
+    redlining_df = gpd.read_file('data/raw/ILChicago1940')
+
+    # open the bus, metra and train stations data
+    bus_df = gpd.read_file('data/raw/CTA_BusStops/')
+    metra_df = gpd.read_file('data/processed/MetraStations/')
+    train_df = gpd.read_file('data/processed/TrainStations/')
+
+    # number of bus stops
+    result_df = count_and_merge(bus_df, redlining_df, 'bus_count')
+
+    # number of metra stations
+    result_df = count_and_merge(metra_df, result_df, 'metra_count')
+
+    # number of train stations
+    result_df = count_and_merge(train_df, result_df, 'train_count')
+
+    # get centroids
+    centroids = result_df.centroid
+
+    spatial_idx = result_df.sindex
+    print(result_df)
+    print(centroids)
 
 if __name__ == '__main__':
     pg_conn, pg_cursor = get_postgres_cursor()

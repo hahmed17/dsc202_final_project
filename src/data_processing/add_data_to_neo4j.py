@@ -23,8 +23,9 @@ import_dir = get_import_dir(session)
 # copy all CSVs from data dir to neo4j import_dir
 data_dir = "data/processed/"
 for file in os.listdir(data_dir):
-    src_path = os.path.join(data_dir, file)
-    shutil.copy(src_path, import_dir)
+    if file[-3:] == 'csv':
+        src_path = os.path.join(data_dir, file)
+        shutil.copy(src_path, import_dir)
 
 
 # import the data into a neo4j database
