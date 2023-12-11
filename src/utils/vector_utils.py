@@ -14,3 +14,6 @@ def count_and_merge(point_df, polygon_df, rename_col):
     count_df = count_df.fillna(0).drop(columns='index').rename(columns={'count': rename_col})
     
     return count_df
+
+def convert_m_to_mi(m):
+    return m/1000 * 0.621371

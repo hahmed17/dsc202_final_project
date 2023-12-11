@@ -22,10 +22,9 @@ def process_route(routes):
             stations = row['DESCRIPTIO'].split(' ot ')
             if len(stations) < 2:
                 continue
-                
 
         stations = [re.sub(r'\([^)]*\)', '', s).strip() for s in stations]
-
+            
         # print(stations)
         route_geom = row['geometry']
         first = route_geom.coords[0]
@@ -57,21 +56,19 @@ def process_route(routes):
     df = pd.DataFrame(
         {
             'src_station': from_stations,
-            'src_loc_x': first_coords_x,
-            'src_loc_y': first_coords_y,
-            'src_loc': first_coords,
-            
-            'dest_stations': to_stations,
-            'dest_loc_x': last_coords_x,
-            'dest_loc_y': last_coords_y,
-            'dest_loc': last_coords
+            'dest_stations': to_stations
         }
     )
 
-    stations = df.drop_duplicates('src_station')[['src_station', 'src_loc', 'src_loc_x', 'src_loc_y']].rename(columns={'src_station': 'station', 'src_loc_x': 'x', 'src_loc_y': 'y', 'src_loc': 'loc'})
+    stations = pd.DataFrame(
+        {
+            'station': from_stations,
+            'loc': first_coords
+        }
+    )
+    stations = stations.drop_duplicates()
     stations = gpd.GeoDataFrame(stations).set_geometry('loc')
     return df, stations
-
 
 # process metra
 metra_routes = gpd.read_file("data/raw/MetraLines").to_crs(epsg=4326)
@@ -88,6 +85,7 @@ metra_stations.to_file('data/processed/MetraStations/MetraStations.shp', index=F
 # train
 train_routes = gpd.read_file("data/raw/CTA_RailLines").to_crs(epsg=4326)
 train_routes, train_stations = process_route(train_routes)
+
 train_routes.to_csv("data/processed/TrainRoutes.csv", index=False)
 
 if not os.path.exists('data/processed/TrainStations'):
