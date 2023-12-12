@@ -275,12 +275,34 @@ def run_grocery_query(neo4j_session, pg_cursor):
 
 def run_schools_query(pg_cursor):
     school_query = '''
-    SELECT holc_grade, StudentsCount, AverageRITScore FROM schoolscores as s, schoolsdata as t
+    WITH t AS
+    (
+    SELECT holc_grade, sum(StudentsCount) as total_students, 
+    sum(AverageRITScore*StudentsCount) as weighted_score 
+    FROM schoolscores as s, schoolsdata as t
     WHERE s.SchoolID = t.School_ID
-    AND s.Grade ILIKE '%combined%' AND holc_grade IS NOT NULL;
+    AND s.Grade ILIKE '%2-8%combined%' AND holc_grade IS NOT NULL
+    AND s.Subject ILIKE 'READING'
+    GROUP BY holc_grade
+    ),
+    r AS
+    (
+    SELECT holc_grade, sum(StudentsCount) as total_students, 
+    sum(AverageRITScore*StudentsCount) as weighted_score 
+    FROM schoolscores as s, schoolsdata as t
+    WHERE s.SchoolID = t.School_ID
+    AND s.Grade ILIKE '%2-8%combined%' AND holc_grade IS NOT NULL
+    AND s.Subject ILIKE 'MATH'
+    GROUP BY holc_grade
+    )
+    SELECT t.holc_grade as "Redlining Scores", 
+    t.weighted_score/t.total_students as "Average Reading Score",
+    r.weighted_score/r.total_students as "Average Math Score"
+    FROM t, r
+    WHERE t.holc_grade = r.holc_grade
+    ORDER BY t.holc_grade;  
     '''
     
-    #PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault/Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'
     execute_postgres(pg_cursor, school_query)
     print_pretty_table(pg_cursor)
 
