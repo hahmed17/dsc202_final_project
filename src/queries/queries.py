@@ -332,7 +332,8 @@ def run_neighborhoods_query(pg_cursor, db):
     community_list = neighborhood_crimes_df['community_name'].tolist()
 
     # Specify the list of words you are searching for
-    keywords = ["small business", "small and medium sized business", "festivals", "Fest", "live music", "parks", "peaceful", "museum", "museums", "stable", "historical"]
+    keywords = ["small business", "small and medium sized business", "festivals", "Fest", "live music", \
+                "parks", "peaceful", "museum", "museums", "stable", "historical"]
 
     matching_ids = []
     matching_neighborhoods = []
