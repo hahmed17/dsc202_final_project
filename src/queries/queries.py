@@ -345,8 +345,29 @@ def run_neighborhoods_query(pg_cursor, db):
                 matching_ids.append(document['_id'])
                 matching_neighborhoods.append(document['filename'])
                 break  # Break to move on to the next document
-
-    result_df = pd.DataFrame({'Desirable communities': matching_neighborhoods})
+    
+    get_redline_grades = f'''
+    WITH t AS(
+    SELECT communitystats.CommunityAreaName AS neighborhood, redlinescores.holc_grade
+    FROM communitystats, redlinescores
+    WHERE CommunityAreaName ILIKE ANY(ARRAY{matching_neighborhoods})
+    AND communitystats.CommunityAreaNumber = NID
+    )
+    SELECT
+    neighborhood as "Desirable Neighborhoods",
+    COUNT(CASE WHEN holc_grade = 'A' THEN 1 END) AS "# A districts",
+    COUNT(CASE WHEN holc_grade = 'B' THEN 1 END) AS "# B districts",
+    COUNT(CASE WHEN holc_grade = 'C' THEN 1 END) AS "# C districts",
+    COUNT(CASE WHEN holc_grade = 'D' THEN 1 END) AS "# D districts"
+    FROM
+        t
+    GROUP BY
+        neighborhood;
+    '''
+    pg_cursor.execute(get_redline_grades)
+    result_cols = [description[0] for description in pg_cursor.description]
+    result_df = pd.DataFrame(pg_cursor.fetchall(), columns=result_cols)
+    
     print_pretty_df(result_df)
     
 if __name__ == '__main__':
