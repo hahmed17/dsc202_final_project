@@ -21,7 +21,9 @@ csv_tables = {
     'communitystats': 'Per_Capita_Income.csv',
     'redlinescores': 'redlining_per_neighborhood.csv',
     'redlinedcrimedata': 'Crimes.csv',
-    'schoolsdata': 'Schools.csv'
+    'schoolsdata': 'Schools.csv',
+    'service_requests': '311_Service_Requests_vacancies.csv',
+    'crimedata': 'Crimes_full.csv'
 }
 
 for k in csv_tables.keys():

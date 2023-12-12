@@ -8,6 +8,7 @@ from geopy import distance
 import numpy as np
 from src.utils.postgres import *
 from src.utils.neo4j import *
+from src.utils.mongodb import get_mongodb_db
 from src.utils.vector_utils import *
 from shapely.geometry import Point
 
@@ -272,10 +273,53 @@ def run_grocery_query(neo4j_session, pg_cursor):
 
     print_pretty_df(result_df)
 
+def run_neighborhoods_query(pg_cursor, db):
+    query = '''
+    WITH miniquery AS (
+        SELECT DISTINCT communitystats.communityareaname AS community_name, 
+        service_requests.community_areas AS community_id, COUNT(*) AS num_vacancies
+        FROM service_requests INNER JOIN communitystats 
+        ON service_requests.community_areas = communitystats.communityareanumber 
+        GROUP BY communitystats.communityareaname, service_requests.community_areas
+        ORDER BY service_requests.community_areas ASC
+    )
+    SELECT DISTINCT miniquery.community_name as community_name, miniquery.community_id, miniquery.num_vacancies, COUNT(*) as count_violent_crime
+    FROM miniquery RIGHT OUTER JOIN CrimeData 
+    ON miniquery.community_id = CrimeData.CommunityArea
+    WHERE miniquery.num_vacancies >  (SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY miniquery.num_vacancies DESC) as percentile_50 FROM miniquery)
+    AND CrimeData.PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault', 'Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'])
+    GROUP BY miniquery.community_name, miniquery.community_id, miniquery.num_vacancies
+    ORDER BY COUNT(*)
+    LIMIT 20;
+    '''
+    pg_cursor.execute(query)
+
+    result_cols = [description[0] for description in pg_cursor.description]
+    neighborhood_crimes_df = pd.DataFrame(pg_cursor.fetchall(), columns=result_cols)
+    community_list = neighborhood_crimes_df['community_name'].tolist()
+
+    # Specify the list of words you are searching for
+    keywords = ["small business", "small and medium sized business", "festivals", "Fest", "live music", "parks", "peaceful", "museum", "museums", "stable", "historical"]
+
+    matching_ids = []
+    matching_neighborhoods = []
+    filter_query = {"filename": {"$in": community_list}}
+
+    for document in db.neighborhoods.find(filter_query):
+        for field, value in document.items():
+            if any(word.lower() in str(value).lower() for word in keywords):  # check if word is in document
+                matching_ids.append(document['_id'])
+                matching_neighborhoods.append(document['filename'])
+                break  # Break to move on to the next document
+
+    result_df = pd.DataFrame({'Desirable communities': matching_neighborhoods})
+    print_pretty_df(result_df)
+    
 if __name__ == '__main__':
     pg_conn, pg_cursor = get_postgres_cursor()
     neo4j_session = get_neo4j_session()
-    
+    db = get_mongodb_db()
+
     print("****************** Query 1 ********************")
     print("a. Running the query about poverty and income")
     print("***********************************************")
@@ -291,8 +335,13 @@ if __name__ == '__main__':
     print("***********************************************")
     run_crime_query(pg_cursor)
     
+    print("***************** Query 3 *********************")
+    print("Running the query about desirable neighborhoods")
     print("***********************************************")
-    print("d. Running the query about grocery stores")
+    run_neighborhoods_query(pg_cursor, db)
+    
+    print("***************** Query 4 *********************")
+    print("  Running the query about grocery stores")
     print("***********************************************")
     run_grocery_query(neo4j_session, pg_cursor)
     

@@ -1,4 +1,4 @@
-CREATE TABLE schoolsdata (
+CREATE TABLE IF NOT EXISTS schoolsdata (
     School_ID INT PRIMARY KEY,
     Short_Name VARCHAR(255),
     holc_id VARCHAR(5),

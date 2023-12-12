@@ -1,4 +1,4 @@
-CREATE TABLE RedlinedCrimeData (
+CREATE TABLE IF NOT EXISTS RedlinedCrimeData (
     ID INT PRIMARY KEY,
     holc_id VARCHAR(5),
     holc_grade VARCHAR(1),
