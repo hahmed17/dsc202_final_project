@@ -23,7 +23,8 @@ csv_tables = {
     'redlinedcrimedata': 'Crimes.csv',
     'schoolsdata': 'Schools.csv',
     'service_requests': '311_Service_Requests_vacancies.csv',
-    'crimedata': 'Crimes_full.csv'
+    'crimedata': 'Crimes_full.csv',
+    'schoolscores': 'SchoolScores.csv'
 }
 
 for k in csv_tables.keys():

@@ -273,6 +273,17 @@ def run_grocery_query(neo4j_session, pg_cursor):
 
     print_pretty_df(result_df)
 
+def run_schools_query(pg_cursor):
+    school_query = '''
+    SELECT holc_grade, StudentsCount, AverageRITScore FROM schoolscores as s, schoolsdata as t
+    WHERE s.SchoolID = t.School_ID
+    AND s.Grade ILIKE '%combined%' AND holc_grade IS NOT NULL;
+    '''
+    
+    #PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Assault/Battery', 'Homicide', 'Robbery', 'Motor Vehicle Theft'
+    execute_postgres(pg_cursor, school_query)
+    print_pretty_table(pg_cursor)
+
 def run_neighborhoods_query(pg_cursor, db):
     query = '''
     WITH miniquery AS (
@@ -335,6 +346,11 @@ if __name__ == '__main__':
     print("***********************************************")
     run_crime_query(pg_cursor)
     
+    print("***************** Query 2 *********************")
+    print("    Running the query about schools")
+    print("***********************************************")
+    run_schools_query(pg_cursor)
+
     print("***************** Query 3 *********************")
     print("Running the query about desirable neighborhoods")
     print("***********************************************")
