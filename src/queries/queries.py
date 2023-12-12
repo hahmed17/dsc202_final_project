@@ -112,7 +112,7 @@ def run_crime_query(pg_cursor):
         WITH t AS
         (
             SELECT c.holc_grade, c.holc_id, Date, PrimaryType, Description, CommunityArea, region_area,
-            CASE WHEN PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Homicide', 'Robbery', 'Motor Vehicle Theft'])
+            CASE WHEN PrimaryType ILIKE ANY(ARRAY['Criminal Sexual Assault', 'Homicide', 'Robbery', 'Motor Vehicle Theft', 'Battery', 'Assault'])
               THEN 1 ELSE 0 END AS violent
             FROM redlinedcrimedata c, redlinescores r
             WHERE c.holc_id = r.holc_id 
