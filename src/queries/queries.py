@@ -164,10 +164,10 @@ def run_grocery_query(neo4j_session, pg_cursor):
     grocery_redlined_df = redlining_df.sjoin(grocery_df, how='right', predicate='intersects').drop(columns=['index_left', 'name'])
     
     # number of grocery stores
-    result_df = count_and_merge(grocery_redlined_df, redlining_df, 'grocery_count')
+    result_df = count_and_merge(grocery_redlined_df, redlining_df, 'grocery_count').to_crs(f'EPSG:{epsg}')
     
     # get centroids
-    centroids = gpd.GeoDataFrame(geometry=result_df.centroid).to_crs(f'EPSG:{epsg}')
+    centroids = gpd.GeoDataFrame(geometry=result_df.centroid)
     centroids['holc_grade'] = result_df['holc_grade']
     centroids['holc_id'] = result_df['holc_id']
 
